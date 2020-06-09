@@ -9,7 +9,7 @@ import data.CSVReader;
 
 public class Globe {
 
-	//private HashMap<Coordonnees, Zone> listeZone;
+	
 	private LinkedHashMap<Coordonnees, Zone> listeZone;
 	
 	
@@ -20,15 +20,34 @@ public class Globe {
 		return listeZone;
 	}
 	
-	
+	/**
+	* Charge les donnée du fichier CSV dans l'instance de Globe courante.
+	* 
+	* @param  String  Chemin du fichier CSV que l'on veut charger.
+	* @throws Exception
+	*/
 	public void chargerCSV(String path) throws Exception {
 		CSVReader.parse(path, this);
 	}
+	
+	/**
+	* Fonction qui ajoute une paire clé valeur de Coordonnées associés à une Zone.
+	* 
+	* @param  Coordonnees  Coordonnées de la Zone que l'on va ajouter.
+	* @param  Zone  zone que l'on va ajouter dans le globe.
+	*/
 	
 	
 	public void ajouterZone(Coordonnees coord,Zone zone) {
 		listeZone.put(coord, zone);
 	}
+	
+	/**
+	* Fonction qui retourne la liste des anomalies par année d'une zone.
+	* 
+	* @param  Coordonnees  Coordonnées de la Zone dont on souhaite avoir la liste d'anomalie.
+	* @return LinkedHashMap<Integer,Float>    Map qui contient l'année associée à une anomalie de température
+	*/
 	
 	public LinkedHashMap<Integer,Float> getValueZone(Coordonnees cor){
 
@@ -40,6 +59,12 @@ public class Globe {
 		return null;
 		
 	}
+	
+	/**
+	* Fonction qui recherche parmi l'ensemble des données les anomalies maximale et minimale.
+	* 
+	* @return ArrayList<Float>    Liste qui contient l'anomalie maximale et l'anomalie minimale de tout le fichier CSV
+	*/
 	public ArrayList<Float> getMaxMin(){
 		Float max =0.0f;
 		Float min =0.0f;
@@ -59,6 +84,13 @@ public class Globe {
 		return maxMin;
 	}
 	
+	/**
+	* Fonction qui retourne la liste des anomalies pour chacune des zones du globe à une année donnée.
+	* 
+	* @param  int  entier qui représente l'année recherchée
+	* @return LinkedHashMap<Coordonnees,Float>    Map qui contient les anomalies recherchée associée à leurs zones respectives
+	*/
+	
 
 	public LinkedHashMap<Coordonnees,Float> getValue(int annee){
 		LinkedHashMap<Coordonnees, Float> hash=new LinkedHashMap <Coordonnees,Float>();
@@ -77,6 +109,13 @@ public class Globe {
 		return hash;
 	}
 	
+	/**
+	* Fonction qui retourne l'anomalie pour une zone donnée à une année donnée
+	* 
+	* @param  Coordonnees  Coordonnées de la Zone que l'on recherche
+	* @param  int  l'année pour laquelle on effectue la recherche
+	* @return Float    Anomalie recherchée
+	*/
 	public Float getValue(Coordonnees cor, int annee) {
 		for( Map.Entry entryGlobe : listeZone.entrySet() ) {
 			if(cor.equalsCoor((Coordonnees)entryGlobe.getKey())) {
