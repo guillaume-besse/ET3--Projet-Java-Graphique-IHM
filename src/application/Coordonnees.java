@@ -16,6 +16,13 @@ public class Coordonnees {
 		return longitude;
 	}
 	
+	
+	/**
+	* Fonction qui teste si deux coordonnées sont égales.
+	* 
+	* @param  Coordonnees  Coordonnées dont on va tester l'égalité avec les coordonnées courantes.
+	* @return boolean    true si les coordonnées sont égales et false sinon
+	*/
 	public boolean equalsCoor(Coordonnees cor) {
 		
 		if(this.lattitude.equals(cor.getLat()) && this.longitude.equals(cor.getLong())) {

@@ -17,7 +17,7 @@ public class Main {
 		try {
 			Globe globe=new Globe();
 			if(args.length>0) {
-				globe.chargerCSV(args[0]);
+				globe.chargerCSV(args[0]); // on charge les données du CSV dans l'instance de Globe.
 			}
 			else {
 				System.out.println("vous devriez entrer le chemin du csv en parametre");
@@ -32,13 +32,13 @@ public class Main {
 			HashMap hash=globe.getValue(1952);
 			System.out.println(hash);
 			System.out.println(globe.getValue(new Coordonnees(12,154), 1881));
-			*/
+			
 			
 			SimpleTest test=new SimpleTest();
 			test.setUp();
 			test.TemperatureAnomalyTest();
 			test.MaxTemperatureTest();
-			
+			*/
 			
 			
 		} catch (Exception e) {

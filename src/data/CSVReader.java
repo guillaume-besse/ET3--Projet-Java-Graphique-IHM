@@ -10,6 +10,13 @@ import application.Zone;
 
 public class CSVReader {
 	
+	
+	/**
+	* Fonction qui lit le CSV et charge les données dans le globe passé en paramètre.
+	* 
+	* @param  String  Chemin du fichier CSV que l'on va lire.
+	* @param  Globe   Globe dans lequel on va charger les données.
+	*/
 	public static void parse (String path, Globe globe) throws Exception{ 
 		
 		ArrayList<Integer> listeAnnee=new ArrayList<Integer>();
@@ -31,7 +38,6 @@ public class CSVReader {
 		   	}else {
 		   		Coordonnees coord =new Coordonnees(Integer.parseInt(array[0]),Integer.parseInt(array[1]));
 		   		Zone zone=new Zone();
-		   		//globe.ajouterZone(coord, zone);
 		   		for(int j=2;j<array.length;j++) {
 		   			if(array[j].equals("NA")) {
 		   				anomalie=Float.NaN;
@@ -43,18 +49,9 @@ public class CSVReader {
 		   			
 		   			
 		   		}
-		   		//System.out.println(zone.getListeAnomalies());
 		   		globe.ajouterZone(coord, zone);
-		   		//System.out.println(globe.getListeZone().get(coord).getListeAnomalies());
-		   		//System.out.println(globe.getListeZone().get(new Coordonnees(-88,-178)).getListeAnomalies());
-		   		
-		   	}
-			
-		   	
-			
-		        		
+		   	}   		
 		    line = bufRead.readLine();
-		    
 		}
 
 		bufRead.close();

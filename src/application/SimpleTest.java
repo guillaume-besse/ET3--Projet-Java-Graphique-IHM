@@ -8,8 +8,7 @@ import java.util.Collection;
 import org.junit.Before;
 import org.junit.Test;
 
-//import junitx.util.ResourceManager;
-// télécharger jiunitx addons
+
 
 
 
@@ -43,7 +42,7 @@ public class SimpleTest {
 	public void YearNumberTest() {		
 
 		//VÃ©rifier que le nombre d'annÃ©es est Ã©gal Ã  141
-		assertEquals(141, resourceManager.getValueZone(new Coordonnees(-88,-178)).size());
+		assertEquals(141, resourceManager.getValueZone(new Coordonnees(-88,-178) ).size());
 	}
 	
 	
