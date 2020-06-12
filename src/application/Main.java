@@ -8,9 +8,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 import data.CSVReader;
+import interfaceGraphique.Controller;
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 
-public class Main {
-
+public class Main extends Application {
+/*
 	public static void main(String[] args) throws Exception
 	{
 		
@@ -24,25 +31,54 @@ public class Main {
 			}
 			
 			
-			/*
-			Coordonnees cor=new Coordonnees(-88,-178);
-			System.out.println(globe.getValueZone(cor));
-			ArrayList max=globe.getMaxMin();
-			System.out.println(max);
-			HashMap hash=globe.getValue(1952);
-			System.out.println(hash);
-			System.out.println(globe.getValue(new Coordonnees(12,154), 1881));
+			// tests de la partie applicative
 			
 			
 			SimpleTest test=new SimpleTest();
 			test.setUp();
 			test.TemperatureAnomalyTest();
 			test.MaxTemperatureTest();
-			*/
+			
 			
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+	
+	*/
+	
+	private static String path;
+	
+	@Override
+    public void start(Stage primaryStage) throws Exception{
+		
+		
+		
+		
+		FXMLLoader loader = new FXMLLoader(getClass().getResource("../interfaceGraphique/Vue.fxml"));
+        //Parent root = FXMLLoader.load(getClass().getResource("../interfaceGraphique/Vue.fxml"));
+		Parent root =loader.load();
+		Controller controller=loader.getController();
+		controller.initController(path);
+		
+        primaryStage.setTitle("Etude Climatique");
+        primaryStage.setScene(new Scene(root, 600, 958));
+        primaryStage.show();
+    }
+
+
+    public static void main(String[] args) throws Exception
+    {
+    	path=args[0];
+    	Globe globe=new Globe();
+    	globe.chargerCSV(args[0]);
+        launch(args);
+    }
+	
+	
 }
+
+
+
+
