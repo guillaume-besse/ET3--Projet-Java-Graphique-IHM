@@ -19,14 +19,22 @@ import javafx.scene.PointLight;
 import javafx.scene.Scene;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
+import javafx.scene.control.Button;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
+import javafx.scene.shape.Cylinder;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
+import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Translate;
 import interfaceGraphique.CameraManager;
 
 public class Controller {
@@ -34,7 +42,9 @@ public class Controller {
 	private static final float TEXTURE_LAT_OFFSET = -0.2f;
     private static final float TEXTURE_LON_OFFSET = 2.8f;
 
-    Modele model;
+    private Modele model;
+    
+    private Group root3D;
     
     
 	@FXML
@@ -43,7 +53,20 @@ public class Controller {
 	@FXML
 	private TextField textAnnee;
 	
+	@FXML
+	private Slider sliderAnnee;
 	
+	@FXML
+	private Button animer;
+	
+	@FXML
+	private Button stop;
+	
+	@FXML
+	private RadioButton rectangle;
+	
+	@FXML
+	private RadioButton histogramme;
 	
 	
 	
@@ -53,21 +76,59 @@ public class Controller {
 	
 	
 	public void initController(String path) throws Exception {
+		root3D = new Group();
 		textAnnee.setText("1880");
 		model=new Modele(path);
-		System.out.println(model.getGlobe().getMaxMin());
-		System.out.println(model.getGlobe().getValue(new Coordonnees(-88,-178), model.getAnnee()));
 		initEarth();
 		
 		textAnnee.addEventHandler(KeyEvent.KEY_PRESSED , new EventHandler<KeyEvent>(){
 			
 			public void handle(KeyEvent event) {
-				if(model.getSelect()==true) {
-					listeRect.get(listeRect.size()-1).setWidth(listeRect.get(listeRect.size()-1).getWidth()-20);
-					listeRect.get(listeRect.size()-1).setHeight(listeRect.get(listeRect.size()-1).getHeight()-20);
+				if(event.getCode().equals(KeyCode.ENTER)) {
+					model.setAnnee(Integer.parseInt(textAnnee.getText()));
+					miseAJourVue();
 				}
 			}
 		});
+		animer.addEventHandler(MouseEvent.MOUSE_CLICKED , new EventHandler<MouseEvent>(){
+			public synchronized void handle(MouseEvent event) {
+				model.setAnimation(true);
+				while (model.getAnimation()==true ) {
+					try {
+						Thread.sleep(300);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					if(model.getAnnee()>=2020) {
+						model.setAnimation(false);
+					}else {
+						
+						model.setAnnee(model.getAnnee()+1);
+						System.out.println(model.getAnnee());
+						miseAJourVue();
+					}
+				}
+			}
+		});
+		stop.addEventHandler(MouseEvent.MOUSE_CLICKED , new EventHandler<MouseEvent>(){
+			public void handle(MouseEvent event) {
+				model.setAnimation(false);
+			}
+		});
+		rectangle.addEventHandler(MouseEvent.MOUSE_CLICKED , new EventHandler<MouseEvent>(){
+			public void handle(MouseEvent event) {
+				model.setRectangle(true);
+				miseAJourVue();
+			}
+		});
+		histogramme.addEventHandler(MouseEvent.MOUSE_CLICKED , new EventHandler<MouseEvent>(){
+			public void handle(MouseEvent event) {
+				model.setRectangle(false);
+				miseAJourVue();
+			}
+		});
+		
 	}
 	
 	
@@ -84,7 +145,7 @@ public class Controller {
 	public void initEarth() {
 		
 		//Create a Pane et graph scene root for the 3D content
-        Group root3D = new Group();
+        //Group root3D = new Group();
         
 
         // Load geometry
@@ -119,8 +180,11 @@ public class Controller {
         AmbientLight ambientLight = new AmbientLight(Color.WHITE);
         ambientLight.getScope().addAll(root3D);
         root3D.getChildren().add(ambientLight);
-
-        miseAJourVue(root3D);
+        
+        Group contour=new Group();
+        root3D.getChildren().add(contour);
+        
+        miseAJourVue();
         
         // Create scene
         SubScene subscene= new SubScene(root3D, 600, 600, true,SceneAntialiasing.BALANCED);
@@ -134,16 +198,19 @@ public class Controller {
 	
 	
 	
-	private void miseAJourVue(Group root3D) {
+	private void miseAJourVue() {//Group root3D
+		
+		
+		textAnnee.setText(model.getAnnee().toString());
 		Group contour=new Group();
         final PhongMaterial rMaterial = new PhongMaterial();
         final PhongMaterial vMaterial = new PhongMaterial();
         final PhongMaterial orangeMaterial = new PhongMaterial();
         final PhongMaterial greyMaterial = new PhongMaterial();
-        Color red=new Color(1,0,0,0.0001);
-        Color green=new Color(0,1,0,0.0001);
-        Color grey=new Color(0.823,0.819,0.870,0.0001);
-        Color orange=new Color(1,0.65,0.22,0.0001);//250, 192, 57
+        Color red=new Color(1,0,0,0.000001);
+        Color green=new Color(0,1,0,0.000001);
+        Color grey=new Color(0.823,0.819,0.870,0.000001);
+        Color orange=new Color(1,0.65,0.22,0.000001);
         
         rMaterial.setDiffuseColor(red);
         rMaterial.setSpecularColor(red);
@@ -160,31 +227,64 @@ public class Controller {
         PhongMaterial tMaterial= new PhongMaterial();
         
         
-        for (int lat=-88;lat<88;lat+=4) {
-        	for (int lon=-178;lon<178;lon+=4) {
-        		Float f=model.getGlobe().getValue(new Coordonnees(lat,lon), model.getAnnee());
-        		if(f.equals(Float.NaN)) {
+        for (int lat=-88;lat<=88;lat+=4) {
+        	for (int lon=-178;lon<=178;lon+=4) {
+        		Float anomalie=model.getGlobe().getValue(new Coordonnees(lat,lon), model.getAnnee());
+        		if(anomalie.equals(Float.NaN)) {
         			tMaterial=greyMaterial;
         		}
-        		else if (f>0.8f) {
+        		else if (anomalie>0.8f) {
         			tMaterial=rMaterial;
         		}
-        		else if(f>0.3f && f<=0.8f) {
+        		else if(anomalie>0.3f && anomalie<=0.8f) {
 	        		tMaterial=orangeMaterial;
-	        	}else if (f<=0.3f){
+	        	}else if (anomalie<=0.3f){
 	        		tMaterial=vMaterial;
 	        	}
-	        	Point3D topRight= geoCoordTo3dCoord(lat, lon,1.001f);
-	        	Point3D bottomRight= geoCoordTo3dCoord(lat-2, lon,1.001f);
-	       		Point3D bottomLeft= geoCoordTo3dCoord(lat-2, lon-2,1.001f);
-	       		Point3D topLeft= geoCoordTo3dCoord(lat, lon-2,1.001f);
+	        	
+        		if (model.getRectangle()==true) {
+        			
+	        		Point3D topRight= geoCoordTo3dCoord(lat, lon,1.001f);
+		        	Point3D bottomRight= geoCoordTo3dCoord(lat-3.9f, lon,1.001f);
+		       		Point3D bottomLeft= geoCoordTo3dCoord(lat-3.9f, lon-3.9f,1.001f);
+		       		Point3D topLeft= geoCoordTo3dCoord(lat, lon-3.9f,1.001f);
+		       		
+		       		AddQuadrilateral(contour, topRight, bottomRight, bottomLeft, topLeft ,tMaterial);
+        		}else {
+        			float multiplicateurTaille=0.f;
+        			
+        			if (anomalie>0.8f) {
+        				multiplicateurTaille=1.5f;
+        				tMaterial=rMaterial;
+                	}
+                	else if(anomalie>0.3f && anomalie<=0.8f) {
+                		multiplicateurTaille=1.25f;
+                		tMaterial=orangeMaterial;
+        	        }
+                	else if (anomalie<=0.3f){
+                		multiplicateurTaille=1;
+                		tMaterial=vMaterial;
+        	        }
+        			
+        			
+        			
+        			Point3D origine =new Point3D(0,0,0);
+    	       		Point3D top= geoCoordTo3dCoord(lat, lon,1.001f);
+    	       		createCylinder(contour,top,origine,multiplicateurTaille,tMaterial);
+        			
+        		}
 	       		
-	       		AddQuadrilateral(contour, topRight, bottomRight, bottomLeft, topLeft ,tMaterial);
 	       		
 	       	
         	}
         }
+        root3D.getChildren().remove(root3D.getChildren().size()-1);
         root3D.getChildren().add(contour);
+        
+        
+        
+        
+        
 	}
 	
 	
@@ -237,4 +337,25 @@ public class Controller {
     }
 	
 	
+
+
+static public void createCylinder(Group parent,Point3D start,Point3D end,float multiplicateurTaille,PhongMaterial tMaterial) {
+    
+    Point3D axeY = new Point3D(0,1,0);
+    Point3D vect = end.subtract(start);
+    Point3D millieu = end.midpoint(start);
+    Point3D axe = vect.crossProduct(axeY);
+    double angle = Math.acos(vect.normalize().dotProduct(axeY));
+    double taille = vect.magnitude()*multiplicateurTaille;
+    Cylinder cylindre = new Cylinder(0.01, taille);
+    cylindre.getTransforms().addAll(new Translate(millieu.getX(), millieu.getY(), millieu.getZ()), new Rotate(-Math.toDegrees(angle), axe));
+    cylindre.setMaterial(tMaterial);
+    parent.getChildren().add(cylindre);
+    
+} 
+
+
+
+
+
 }
