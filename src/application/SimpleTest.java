@@ -15,14 +15,13 @@ import org.junit.Test;
 
 public class SimpleTest {
 
-	//ResourceManager resourceManager;
+	
 	Globe resourceManager;
 
 	@Before
 	public void setUp() throws Exception {
 		
-		//Exemple
-        //resourceManager = new ResourceManager();
+		
 		resourceManager=new Globe();
 		assertNotEquals(resourceManager, null);
 		

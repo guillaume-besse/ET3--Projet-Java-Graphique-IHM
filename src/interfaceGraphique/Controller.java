@@ -47,7 +47,7 @@ import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import interfaceGraphique.CameraManager;
 
-//import javafx.application.Platform.runLater(java.lang.Runnable);
+
 
 
 
@@ -108,9 +108,14 @@ public class Controller {
 	
 	
 	
-
 	
 	
+	/**
+	* Fonction qui initialise le controller et initialise tous les enventHadler de l'interface.
+	* 
+	* @param  String  Chemin du fichier CSV
+	* @throws Exception
+	*/
 	
 	public void initController(String path) throws Exception {
 		root3D = new Group();
@@ -125,18 +130,10 @@ public class Controller {
 				if(event.getCode().equals(KeyCode.ENTER)) {
 					model.setAnnee(Integer.parseInt(textAnnee.getText()));
 					sliderAnnee.setValue(model.getAnnee());
-					//miseAJourVue();
 				}
 			}
 		});
-		/*sliderAnnee.addEventHandler(MouseEvent.MOUSE_CLICKED , new EventHandler<MouseEvent>(){
-			
-			public void handle(MouseEvent event) {
-				model.setAnnee((int)sliderAnnee.getValue());
-				miseAJourVue();
-			
-			}
-		});*/
+		
 		sliderAnnee.valueProperty().addListener(new ChangeListener<Number>() {
             public void changed(ObservableValue<? extends Number> ov, Number old_val, Number new_val) {
             	model.setAnnee( new_val.intValue());
@@ -144,14 +141,7 @@ public class Controller {
             	
             }
 		});
-		/*box.addEventHandler(MouseEvent.MOUSE_CLICKED , new EventHandler<MouseEvent>(){
-			
-			public void handle(MouseEvent event) {
-				model.setAnnee((int)sliderAnnee.getValue());
-				miseAJourVue();
-			
-			}
-		});*/
+		
 		animer.addEventHandler(MouseEvent.MOUSE_CLICKED , new EventHandler<MouseEvent>(){
 			public synchronized void handle(MouseEvent event) {
 				model.setAnimation(true);
@@ -175,7 +165,7 @@ public class Controller {
 									}else {
 										
 										try {
-									        Thread.sleep(4000);
+									        Thread.sleep(3000);
 											} catch (InterruptedException e) {
 												e.printStackTrace();
 											}
@@ -229,23 +219,22 @@ public class Controller {
 	}
 	
 	
+	/**
+	* Fonction appelé au chargement du fichier FXML que l'on n'utilise pas
+	* 
+	*/
 	@FXML
 	public void initialize() {
-		
-		
-		
-		
-
-        
+		  
 	}
 	
+	/**
+	* Fonction qui initialise l'interface avec la géométrie de la terre et les rectangles autour.
+	* 
+	*/
 	public void initEarth() {
 		
-		//Create a Pane et graph scene root for the 3D content
-        //Group root3D = new Group();
-        
-
-        // Load geometry
+		// Load geometry
         String path=new File("").getAbsolutePath();
         System.out.println(path);
         ObjModelImporter objImporter = new ObjModelImporter();
@@ -266,13 +255,13 @@ public class Controller {
         new CameraManager(camera, pane3D, root3D);
 
         // Add point light
-       /* PointLight light = new PointLight(Color.WHITE);
+        PointLight light = new PointLight(Color.WHITE);
         light.setTranslateX(-180);
         light.setTranslateY(-90);
         light.setTranslateZ(-120);
         light.getScope().addAll(root3D);
         root3D.getChildren().add(light);
-*/
+
         // Add ambient light
         AmbientLight ambientLight = new AmbientLight(Color.WHITE);
         ambientLight.getScope().addAll(root3D);
@@ -306,14 +295,14 @@ public class Controller {
 	
 	
 	
-	
+	/**
+	* Fonction qui met à jour la vue après chaque action de l'utilisateur.
+	* 
+	*/
 	public void miseAJourVue() {
 		
 		
 		textAnnee.setText(model.getAnnee().toString());
-		
-		//sliderAnnee.setValue(model.getAnnee());
-		
 		Group contour=new Group();
 		
 
@@ -421,10 +410,6 @@ public class Controller {
         }
 				        
         
-
-        //root3D.getChildren().remove(root3D.getChildren().size()-1);
-        //root3D.getChildren().add(contour);
-        
         
         Runnable command = new Runnable() {
 	        @Override
@@ -437,8 +422,7 @@ public class Controller {
 	    };
 	    if (Platform.isFxApplicationThread()) {
 	        // Nous sommes déjà dans le thread graphique
-	        //command.run();
-	    	Platform.runLater(command);
+	        command.run();
 	    } else {
 	        // Nous ne sommes pas dans le thread graphique
 	        // on utilise runLater.
@@ -453,7 +437,14 @@ public class Controller {
 	}
 	
 	
-	
+	/**
+	* Fonction qui calcule les coordonnée 3D d'un point corespondant à une latitude, une longitude et le rayon de la sphère
+	* 
+	* @param  float  lattitude de la zone
+	* @param  float  longitude de la zone
+	* @param  float  rayon de la sphère.
+	* @return Point3D coordonnées 3D du point corespondant.
+	*/
 	public static Point3D geoCoordTo3dCoord(float lat, float lon,float radius) {
         float lat_cor = lat + TEXTURE_LAT_OFFSET;
         float lon_cor = lon + TEXTURE_LON_OFFSET;
@@ -466,6 +457,16 @@ public class Controller {
     }
 	
 	
+	/**
+	* Fonction qui ajoute à un groupe parent un rectangle en 3D délimité par quatre points en 3D. On associe un material au rectangle.
+	* 
+	* @param  Group  groupe parent
+	* @param  Point3D  point en haut à droite
+	* @param  Point3D  point en bas à droite
+	* @param  Point3D  point en bas à gauche
+	* @param  Point3D  point en haut à gauche
+	* @param  PhongMaterial  material que l'on attribut au rectangle
+	*/
 	private void AddQuadrilateral(Group parent, Point3D topRight,Point3D bottomRight,Point3D bottomLeft,Point3D topLeft,PhongMaterial material) {
     	
     	final TriangleMesh triangleMesh=new TriangleMesh();
@@ -499,7 +500,16 @@ public class Controller {
 	
 	
 
-
+	/**
+	* Fonction qui ajoute à un groupe parent un cylindre en 3D délimité par deux points en 3D. On associe un material au cylindre.
+	* La taille du cylindre sera proportionelle à la valeur multiplicateurTaille
+	* 
+	* @param  Group  groupe parent
+	* @param  Point3D  début du cylindre
+	* @param  Point3D  fin du cylindre
+	* @param  float  on multiplie la taille du cylindre par cette valeur
+	* @param  PhongMaterial  material que l'on attribut au cylindre
+	*/
 	static public void createCylinder(Group parent,Point3D start,Point3D end,float multiplicateurTaille,PhongMaterial tMaterial) {
     
 		Point3D axeY = new Point3D(0,1,0);
