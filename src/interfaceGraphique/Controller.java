@@ -8,6 +8,13 @@ import com.interactivemesh.jfx.importer.ImportException;
 import com.interactivemesh.jfx.importer.obj.ObjModelImporter;
 
 import application.Coordonnees;
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Point3D;
@@ -20,22 +27,29 @@ import javafx.scene.Scene;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Cylinder;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.MeshView;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import interfaceGraphique.CameraManager;
+
+//import javafx.application.Platform.runLater(java.lang.Runnable);
+
+
 
 public class Controller {
 
@@ -68,10 +82,33 @@ public class Controller {
 	@FXML
 	private RadioButton histogramme;
 	
+	@FXML
+	private Button plus;
+	
+	@FXML
+	private Button moins;
+	
+	@FXML
+	private Label text_vitesse;
+	
+	@FXML
+	HBox box=new HBox();
+	
+	@FXML
+	Rectangle rec1;
+	@FXML
+	Rectangle rec2;
+	@FXML
+	Rectangle rec3;
+	@FXML
+	Rectangle rec4;
+	@FXML
+	Rectangle rec5;
 	
 	
 	
 	
+
 	
 	
 	
@@ -80,35 +117,82 @@ public class Controller {
 		textAnnee.setText("1880");
 		model=new Modele(path);
 		initEarth();
+		rectangle.setSelected(true);
 		
 		textAnnee.addEventHandler(KeyEvent.KEY_PRESSED , new EventHandler<KeyEvent>(){
 			
 			public void handle(KeyEvent event) {
 				if(event.getCode().equals(KeyCode.ENTER)) {
 					model.setAnnee(Integer.parseInt(textAnnee.getText()));
-					miseAJourVue();
+					sliderAnnee.setValue(model.getAnnee());
+					//miseAJourVue();
 				}
 			}
 		});
+		/*sliderAnnee.addEventHandler(MouseEvent.MOUSE_CLICKED , new EventHandler<MouseEvent>(){
+			
+			public void handle(MouseEvent event) {
+				model.setAnnee((int)sliderAnnee.getValue());
+				miseAJourVue();
+			
+			}
+		});*/
+		sliderAnnee.valueProperty().addListener(new ChangeListener<Number>() {
+            public void changed(ObservableValue<? extends Number> ov, Number old_val, Number new_val) {
+            	model.setAnnee( new_val.intValue());
+             	miseAJourVue();
+            	
+            }
+		});
+		/*box.addEventHandler(MouseEvent.MOUSE_CLICKED , new EventHandler<MouseEvent>(){
+			
+			public void handle(MouseEvent event) {
+				model.setAnnee((int)sliderAnnee.getValue());
+				miseAJourVue();
+			
+			}
+		});*/
 		animer.addEventHandler(MouseEvent.MOUSE_CLICKED , new EventHandler<MouseEvent>(){
 			public synchronized void handle(MouseEvent event) {
 				model.setAnimation(true);
-				while (model.getAnimation()==true ) {
-					try {
-						Thread.sleep(300);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					if(model.getAnnee()>=2020) {
-						model.setAnimation(false);
-					}else {
-						
-						model.setAnnee(model.getAnnee()+1);
-						System.out.println(model.getAnnee());
-						miseAJourVue();
-					}
-				}
+				
+				final Service<Void> calculateService = new Service<Void>() {
+
+		            @Override
+		            protected Task<Void> createTask() {
+		                return new Task<Void>() {
+
+		                    @Override
+		                    protected Void call() throws Exception {
+		                    	
+		                    	
+				
+				
+								while (model.getAnimation()==true ) {
+									
+									if(model.getAnnee()>=2020) {
+										model.setAnimation(false);
+									}else {
+										
+										try {
+									        Thread.sleep(4000);
+											} catch (InterruptedException e) {
+												e.printStackTrace();
+											}
+										sliderAnnee.setValue(model.getAnnee()+model.getVitesse());
+										
+									}
+								}
+			
+					        return null;
+	                    }
+	                };
+	            }
+	        };
+	        
+	        
+	        calculateService.start();
+	        
 			}
 		});
 		stop.addEventHandler(MouseEvent.MOUSE_CLICKED , new EventHandler<MouseEvent>(){
@@ -126,6 +210,19 @@ public class Controller {
 			public void handle(MouseEvent event) {
 				model.setRectangle(false);
 				miseAJourVue();
+			}
+		});
+		
+		plus.addEventHandler(MouseEvent.MOUSE_CLICKED , new EventHandler<MouseEvent>(){
+			public void handle(MouseEvent event) {
+				model.augmenteVitesse();
+				text_vitesse.setText("Vitesse d'animation x "+ model.getVitesse() +" :");
+			}
+		});
+		moins.addEventHandler(MouseEvent.MOUSE_CLICKED , new EventHandler<MouseEvent>(){
+			public void handle(MouseEvent event) {
+				model.diminueVitesse();
+				text_vitesse.setText("Vitesse d'animation x "+ model.getVitesse() +" :");
 			}
 		});
 		
@@ -184,6 +281,18 @@ public class Controller {
         Group contour=new Group();
         root3D.getChildren().add(contour);
         
+        Color red=new Color(1,0,0,1);
+        Color green=new Color(0,1,0,1);
+        Color orange=new Color(1,0.65,0.22,1);
+        Color jaune=new Color(1,1,0,1);
+        Color bleu=new Color(0,0,1,1);
+        rec1.setFill(bleu);
+        rec2.setFill(green);
+        rec3.setFill(jaune);
+        rec4.setFill(orange);
+        rec5.setFill(red);
+        
+        
         miseAJourVue();
         
         // Create scene
@@ -198,22 +307,37 @@ public class Controller {
 	
 	
 	
-	private void miseAJourVue() {//Group root3D
+	public void miseAJourVue() {
 		
 		
 		textAnnee.setText(model.getAnnee().toString());
+		
+		//sliderAnnee.setValue(model.getAnnee());
+		
 		Group contour=new Group();
-        final PhongMaterial rMaterial = new PhongMaterial();
-        final PhongMaterial vMaterial = new PhongMaterial();
-        final PhongMaterial orangeMaterial = new PhongMaterial();
-        final PhongMaterial greyMaterial = new PhongMaterial();
-        Color red=new Color(1,0,0,0.000001);
-        Color green=new Color(0,1,0,0.000001);
-        Color grey=new Color(0.823,0.819,0.870,0.000001);
-        Color orange=new Color(1,0.65,0.22,0.000001);
-        
-        rMaterial.setDiffuseColor(red);
-        rMaterial.setSpecularColor(red);
+		
+
+                    	
+                    	
+		
+		
+		final PhongMaterial rMaterial = new PhongMaterial();
+		final PhongMaterial vMaterial = new PhongMaterial();
+		final PhongMaterial orangeMaterial = new PhongMaterial();
+		final PhongMaterial jauneMaterial = new PhongMaterial();
+		final PhongMaterial bleuMaterial = new PhongMaterial();
+		final PhongMaterial greyMaterial = new PhongMaterial();
+		Color red=new Color(1,0,0,0.000001);
+		Color green=new Color(0,1,0,0.000001);
+		Color grey=new Color(0.823,0.819,0.870,0.000001);
+		Color orange=new Color(1,0.65,0.22,0.000001);
+		Color jaune=new Color(1,1,0,0.000001);
+		Color bleu=new Color(0,0,1,0.000001);
+		
+		
+		rMaterial.setDiffuseColor(red);
+		
+		rMaterial.setSpecularColor(red);
         
         vMaterial.setDiffuseColor(green);
         vMaterial.setSpecularColor(green);
@@ -224,23 +348,35 @@ public class Controller {
         orangeMaterial.setDiffuseColor(orange);
         orangeMaterial.setSpecularColor(orange);
         
+        bleuMaterial.setDiffuseColor(bleu);
+        bleuMaterial.setSpecularColor(bleu);
+        
+        jauneMaterial.setDiffuseColor(jaune);
+        jauneMaterial.setSpecularColor(jaune);
+        
+        
+        
         PhongMaterial tMaterial= new PhongMaterial();
         
         
         for (int lat=-88;lat<=88;lat+=4) {
         	for (int lon=-178;lon<=178;lon+=4) {
         		Float anomalie=model.getGlobe().getValue(new Coordonnees(lat,lon), model.getAnnee());
-        		if(anomalie.equals(Float.NaN)) {
-        			tMaterial=greyMaterial;
-        		}
-        		else if (anomalie>0.8f) {
-        			tMaterial=rMaterial;
-        		}
-        		else if(anomalie>0.3f && anomalie<=0.8f) {
-	        		tMaterial=orangeMaterial;
-	        	}else if (anomalie<=0.3f){
-	        		tMaterial=vMaterial;
-	        	}
+        		if (anomalie>1.0f) {
+    				tMaterial=rMaterial;
+            	}
+            	else if(anomalie>0.6f && anomalie<=1.0f) {
+            		tMaterial=orangeMaterial;
+    	        }
+            	else if (anomalie>0.3f && anomalie<=0.6){
+            		tMaterial=jauneMaterial;
+    	        }
+            	else if (anomalie<=0.3f && anomalie>0){
+            		tMaterial=vMaterial;
+    	        }
+            	else if ( anomalie<=0){
+            		tMaterial=bleuMaterial;
+    	        }
 	        	
         		if (model.getRectangle()==true) {
         			
@@ -253,43 +389,68 @@ public class Controller {
         		}else {
         			float multiplicateurTaille=0.f;
         			
-        			if (anomalie>0.8f) {
+        			if (anomalie>1.0f) {
         				multiplicateurTaille=1.5f;
         				tMaterial=rMaterial;
                 	}
-                	else if(anomalie>0.3f && anomalie<=0.8f) {
-                		multiplicateurTaille=1.25f;
+                	else if(anomalie>0.6f && anomalie<=1.0f) {
+                		multiplicateurTaille=1.35f;
                 		tMaterial=orangeMaterial;
         	        }
-                	else if (anomalie<=0.3f){
-                		multiplicateurTaille=1;
+                	else if (anomalie>0.3f && anomalie<=0.6){
+                		multiplicateurTaille=1.18f;
+                		tMaterial=jauneMaterial;
+        	        }
+                	else if (anomalie<=0.3f && anomalie>0){
+                		multiplicateurTaille=1.1f;
                 		tMaterial=vMaterial;
         	        }
-        			
+                	else if ( anomalie<=0){
+                		multiplicateurTaille=1;
+                		tMaterial=bleuMaterial;
+        	        }
         			
         			
         			Point3D origine =new Point3D(0,0,0);
     	       		Point3D top= geoCoordTo3dCoord(lat, lon,1.001f);
     	       		createCylinder(contour,top,origine,multiplicateurTaille,tMaterial);
-        			
-        		}
-	       		
-	       		
+        				
+                }
 	       	
         	}
         }
-        root3D.getChildren().remove(root3D.getChildren().size()-1);
-        root3D.getChildren().add(contour);
+				        
+        
+
+        //root3D.getChildren().remove(root3D.getChildren().size()-1);
+        //root3D.getChildren().add(contour);
+        
+        
+        Runnable command = new Runnable() {
+	        @Override
+	        public void run() {
+	            
+	        	root3D.getChildren().remove(root3D.getChildren().size()-1);
+        		root3D.getChildren().add(contour);
+        		 
+	        }
+	    };
+	    if (Platform.isFxApplicationThread()) {
+	        // Nous sommes déjà dans le thread graphique
+	        //command.run();
+	    	Platform.runLater(command);
+	    } else {
+	        // Nous ne sommes pas dans le thread graphique
+	        // on utilise runLater.
+	        Platform.runLater(command);
+	    }
+        
         
         
         
         
         
 	}
-	
-	
-	
-	
 	
 	
 	
@@ -339,23 +500,25 @@ public class Controller {
 	
 
 
-static public void createCylinder(Group parent,Point3D start,Point3D end,float multiplicateurTaille,PhongMaterial tMaterial) {
+	static public void createCylinder(Group parent,Point3D start,Point3D end,float multiplicateurTaille,PhongMaterial tMaterial) {
     
-    Point3D axeY = new Point3D(0,1,0);
-    Point3D vect = end.subtract(start);
-    Point3D millieu = end.midpoint(start);
-    Point3D axe = vect.crossProduct(axeY);
-    double angle = Math.acos(vect.normalize().dotProduct(axeY));
-    double taille = vect.magnitude()*multiplicateurTaille;
-    Cylinder cylindre = new Cylinder(0.01, taille);
-    cylindre.getTransforms().addAll(new Translate(millieu.getX(), millieu.getY(), millieu.getZ()), new Rotate(-Math.toDegrees(angle), axe));
-    cylindre.setMaterial(tMaterial);
-    parent.getChildren().add(cylindre);
+		Point3D axeY = new Point3D(0,1,0);
+		Point3D vect = end.subtract(start);
+    	Point3D millieu = end.midpoint(start);
+    	Point3D axe = vect.crossProduct(axeY);
+    	double angle = Math.acos(vect.normalize().dotProduct(axeY));
+    	double taille = vect.magnitude()*multiplicateurTaille;
+    	Cylinder cylindre = new Cylinder(0.01, taille);
+    	cylindre.getTransforms().addAll(new Translate(millieu.getX(), millieu.getY(), millieu.getZ()), new Rotate(-Math.toDegrees(angle), axe));
+    	cylindre.setMaterial(tMaterial);
+    	parent.getChildren().add(cylindre);
     
-} 
+	} 
 
 
-
+	
+	     
+	
 
 
 }

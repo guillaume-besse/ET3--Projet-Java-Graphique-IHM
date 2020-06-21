@@ -8,6 +8,7 @@ public class Modele {
 	private Integer annee;
 	private boolean animation;
 	private boolean rectangle;
+	private Integer vitesse;
 	
 	
 	
@@ -17,6 +18,7 @@ public class Modele {
 		globe.chargerCSV(path);
 		annee=1880;
 		rectangle=true;
+		vitesse=1;
 	}
 	
 	public Globe getGlobe() {
@@ -39,6 +41,17 @@ public class Modele {
 	}
 	public void setRectangle(boolean rect) {
 		rectangle=rect;
+	}
+	public void augmenteVitesse() {
+		vitesse=vitesse*2;
+	}
+	public void diminueVitesse() {
+		if(vitesse>1) {
+			vitesse=vitesse/2;
+		}
+	}
+	public int getVitesse() {
+		return vitesse;
 	}
 	
 	
